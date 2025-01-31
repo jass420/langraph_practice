@@ -6,6 +6,9 @@ from IPython.display import Image, display
 from langgraph.graph import MessagesState
 from langgraph.graph import StateGraph, START, END
 import sqlite3
+from IPython.display import Image, display
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import StateGraph, START
 
 llm = ChatOpenAI(model_name="gpt-4", temperature=0.7)
 conn = sqlite3.connect(":memory:", check_same_thread = False)
@@ -18,13 +21,13 @@ set_env("OPENAI_API_KEY")
 set_env("LANGCHAIN_API_KEY")
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 
-# messages = [AIMessage()]
 
 def chat_model_node(state: MessagesState):
     return {"messages": llm.invoke(state["messages"])}
 
 class State(MessagesState):
     summary: str
+
 def call_model(state: State):
     
     # Get summary if it exists
@@ -32,19 +35,17 @@ def call_model(state: State):
 
     # If there is summary, then we add it
     if summary:
-        
         # Add summary to system message
         system_message = f"Summary of conversation earlier: {summary}"
-
         # Append summary to any newer messages
         messages = [SystemMessage(content=system_message)] + state["messages"]
-    
     else:
         messages = state["messages"]
     
     response = llm.invoke(messages)
     return {"messages": response}
 
+#The two functions below are used to summarise the conversation and the last function is used to check if ewe need a summary or we can end
 def summarize_conversation(state: State):
     
     # First, we get any existing summary
@@ -76,3 +77,20 @@ def should_continue(state: State):
     
     # Otherwise we can just end
     return END
+
+# Define a new graph
+workflow = StateGraph(State)
+workflow.add_node("conversation", call_model)
+workflow.add_node(summarize_conversation)
+
+#Add edges
+workflow.add_edge(START, "conversation")
+#Putting in the edge that checks if there needs to be a summary
+workflow.add_conditional_edges("conversation", should_continue)
+workflow.add_edge("summarize conversation", END)
+
+#Compile
+memeory = MemorySaver()
+graph = workflow.compile(checkpointer = memeory)
+display(Image(graph.get_graph().draw_mermaid_png()))
+
