@@ -5,8 +5,10 @@ from langchain_core.messages import SystemMessage, HumanMessage, RemoveMessage
 from IPython.display import Image, display
 from langgraph.graph import MessagesState
 from langgraph.graph import StateGraph, START, END
+import sqlite3
 
 llm = ChatOpenAI(model_name="gpt-4", temperature=0.7)
+conn = sqlite3.connect(":memory:", check_same_thread = False)
 
 def set_env(var: str):
     if not os.environ.get(var):
@@ -59,3 +61,18 @@ def summarize_conversation(state: State):
         
     else:
         summary_message = "Create a summary of the conversation above:"
+
+#Checking if we need to END or summarise converation
+#Conversation is summarised if there are more thsn 6 messages
+def should_continue(state: State):
+    
+    """Return the next node to execute."""
+    
+    messages = state["messages"]
+    
+    # If there are more than six messages, then we summarize the conversation
+    if len(messages) > 6:
+        return "summarize_conversation"
+    
+    # Otherwise we can just end
+    return END
