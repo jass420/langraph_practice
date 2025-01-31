@@ -9,8 +9,14 @@ import sqlite3
 from IPython.display import Image, display
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import StateGraph, START
+from dotenv import load_dotenv
+load_dotenv()
+# Retrieve OpenAI API key
+openai_api_key = os.getenv("OPENAI_API_KEY")
+if not openai_api_key:
+    raise ValueError("API key not found. Ensure your .env file is set correctly.")
 
-llm = ChatOpenAI(model_name="gpt-4", temperature=0.7)
+llm = ChatOpenAI(model_name="gpt-4", temperature=0.7, openai_api_key=openai_api_key)
 conn = sqlite3.connect(":memory:", check_same_thread = False)
 
 def set_env(var: str):
@@ -20,7 +26,7 @@ def set_env(var: str):
 set_env("OPENAI_API_KEY")
 set_env("LANGCHAIN_API_KEY")
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
-
+os.environ["LANGCHAIN_PROJECT"] = "langchain-academy"
 
 def chat_model_node(state: MessagesState):
     return {"messages": llm.invoke(state["messages"])}
@@ -81,7 +87,7 @@ def should_continue(state: State):
 # Define a new graph
 workflow = StateGraph(State)
 workflow.add_node("conversation", call_model)
-workflow.add_node(summarize_conversation)
+workflow.add_node("summarize conversation", summarize_conversation)
 
 #Add edges
 workflow.add_edge(START, "conversation")
