@@ -69,6 +69,28 @@ initial_input = {"messages": HumanMessage(content="Multiply 2 and 3")}
 
 thread = {"configurable": {"thread_id": "1"}}
 
-for event in graph.stream(initial_input, thread, stream_mode="values"):
+# for event in graph.stream(initial_input, thread, stream_mode="values"):
+#     event['messages'][-1].pretty_print()
+# state = graph.get_state(thread)
+# print(state.next)
+
+# for event in graph.stream(None, thread, stream_mode="values"):
+#     event['messages'][-1].pretty_print()
+
+thread2 = {"configurable": {"thread_id":"2"}}
+
+# Run the graph until the first interruption
+for event in graph.stream(initial_input, thread2, stream_mode="values"):
     event['messages'][-1].pretty_print()
+
+user_approval = input("Do you  want to call the tool?")
+
+#Check approval
+if user_approval.lower() == "yes":
+    for event in graph.stream(None, thread2, stream_mode="values"):
+        event['messages'][-1].pretty_print()
+else:
+    print("Operation cancelled by user.")
+
+
 #Dynamic breakpoints
