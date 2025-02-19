@@ -100,3 +100,11 @@ memeory = MemorySaver()
 graph = workflow.compile(checkpointer = memeory)
 display(Image(graph.get_graph().draw_mermaid_png()))
 
+#Creating threads
+config = {"configurable": {"thread_id": "1"}}
+
+#Start conversation
+input_message = HumanMessage(content="Hello I am Jas")
+output = graph.invoke({"messages": [input_message]}, config)
+for m in output['messages'][-1:]:
+    m.pretty_print()
