@@ -63,7 +63,10 @@ builder.add_conditional_edges(
 builder.add_edge("tools", "assistant")
 
 memory = MemorySaver()
-graph = builder.compile(interrupt_before=["tools"], checkpointer=memory)
+
+#graph = builder.compile(interrupt_before=["tools"], checkpointer=memory)
+#Changing the interrupt before to assistant
+graph = builder.compile(interrupt_before=["assistant"], checkpointer=memory)
 
 initial_input = {"messages": HumanMessage(content="Multiply 2 and 3")}
 
@@ -83,14 +86,23 @@ thread2 = {"configurable": {"thread_id":"2"}}
 for event in graph.stream(initial_input, thread2, stream_mode="values"):
     event['messages'][-1].pretty_print()
 
-user_approval = input("Do you  want to call the tool?")
+
+#user_approval = input("Do you  want to call the tool?")
 
 #Check approval
-if user_approval.lower() == "yes":
-    for event in graph.stream(None, thread2, stream_mode="values"):
-        event['messages'][-1].pretty_print()
-else:
-    print("Operation cancelled by user.")
+# if user_approval.lower() == "yes":
+#     for event in graph.stream(None, thread2, stream_mode="values"):
+#         event['messages'][-1].pretty_print()
+# else:
+#     print("Operation cancelled by user.")
 
-
+#Interupting before assitant and edditing message
+graph.update_state(thread2, {"messages": [HumanMessage(content="No, actually multiply 3 and 3!")]})
+new_state = graph.get_state(thread2).values
+#printing the human messages
+for m in new_state['messages']:
+    m.pretty_print()
+#Printing the output
+for event in graph.stream(None, thread2, stream_mode="values"):
+    event["messages"][-1].pretty_print()
 #Dynamic breakpoints
