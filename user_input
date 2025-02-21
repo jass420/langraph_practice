@@ -109,11 +109,22 @@ for event in graph.stream(None, thread2, stream_mode="values"):
 #Replaying states
 all_states = [s for s in graph.get_state_history(thread2)]
 print("length:", len(all_states))
-to_replay = all_states[-2]
+to_replay = all_states[-1]
 print(to_replay.values)
 print(to_replay.next)
 for event in graph.stream(None, to_replay.config, stream_mode="values"):
     event['messages'][-1].pretty_print()
 
 #forking
+to_fork = all_states[-1]
+to_fork.values["messages"]
 
+print(to_fork.config)
+#modifying the state at this checkpoint
+fork_config =  graph.update_state(
+    to_fork.config,
+    {"messages": [HumanMessage(content='Multiply 2 and 3', 
+                               id=to_fork.values["messages"][0].id)]},
+
+)
+print(fork_config)
