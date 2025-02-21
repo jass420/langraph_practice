@@ -105,4 +105,15 @@ for m in new_state['messages']:
 #Printing the output
 for event in graph.stream(None, thread2, stream_mode="values"):
     event["messages"][-1].pretty_print()
-#Dynamic breakpoints
+
+#Replaying states
+all_states = [s for s in graph.get_state_history(thread2)]
+print("length:", len(all_states))
+to_replay = all_states[-2]
+print(to_replay.values)
+print(to_replay.next)
+for event in graph.stream(None, to_replay.config, stream_mode="values"):
+    event['messages'][-1].pretty_print()
+
+#forking
+

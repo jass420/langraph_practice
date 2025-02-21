@@ -68,3 +68,4 @@ graph.update_state(thread_config, {"input": "hi"})
 
 for event in graph.stream(None, thread_config, stream_mode="values"):
     print(event)
+
